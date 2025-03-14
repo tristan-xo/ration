@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        input, button { padding: 10px; margin: 10px; }
+        table { width: 80%; margin: auto; border-collapse: collapse; }
+        th, td { border: 1px solid black; padding: 10px; }
+        #totalBill { font-size: 18px; font-weight: bold; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <h2>Check Your Transactions</h2>
+    <input type="text" id="phoneNumber" placeholder="Enter your phone number">
+    <button onclick="fetchTransactions()">Search</button>
+
+    <div id="transactions"></div>
+    <div id="totalBill"></div> <!-- Display total bill below the table -->
+
+    <script>
+        async function fetchTransactions() {
+            const phone = document.getElementById("phoneNumber").value.trim();
+
+            if (!phone) {
+                alert("Please enter your phone number");
+                return;
+            }
+
+            const apiUrl = `http://127.0.0.1:5000/transactions?user_id=${phone}`;
+
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                const transactionsDiv = document.getElementById("transactions");
+                const totalBillDiv = document.getElementById("totalBill");
+                transactionsDiv.innerHTML = ""; // Clear previous data
+                totalBillDiv.innerHTML = ""; // Clear total bill
+
+                if (data.error) {
+                    transactionsDiv.innerHTML = "<p>No transactions found.</p>";
+                    return;
+                }
+
+                let table = `<table>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Item</th>
+                                    <th>Quantity</th>
+                                    <th>Price (₹)</th>
+                                </tr>`;
+
+                data.transactions.forEach(record => {
+                    table += `<tr>
+                                <td>${record.date}</td>
+                                <td>${record.stocks}</td>
+                                <td>${record.quantity_taken}</td>
+                                <td>${record.price}</td> <!-- New Price Column -->
+                              </tr>`;
+                });
+
+                table += `</table>`;
+                transactionsDiv.innerHTML = table;
+
+                // Display total bill separately below the table
+                totalBillDiv.innerHTML = `<p id="totalBill">Total Bill: ₹${data.total_bill}</p>`;
+
+            } catch (error) {
+                console.error("Error fetching transactions:", error);
+                document.getElementById("transactions").innerHTML = "<p>Failed to fetch transactions.</p>";
+            }
+        }
+    </script>
+
+</body>
+</html>
